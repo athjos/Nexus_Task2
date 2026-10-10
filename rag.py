@@ -1,11 +1,3 @@
-"""Core RAG logic for the Smart Document Knowledge Assistant.
-
-Pipeline:  upload -> extract text -> chunk -> embed -> (query) -> top-k similarity search
-           -> build prompt with retrieved chunks -> LLM answer grounded in those chunks.
-
-Embeddings: uses sentence-transformers (semantic, understands synonyms) when installed,
-otherwise falls back to TF-IDF (keyword-weighted) so the app still runs anywhere.
-"""
 from __future__ import annotations
 
 import hashlib
@@ -263,14 +255,45 @@ def generate_answer(
         from openai import OpenAI
 
         client = OpenAI(api_key=api_key, base_url=base_url or None)
-        resp = client.chat.completions.create(
-            model=model or "gpt-4o-mini",
-            temperature=0.2,
-            messages=[{"role": "system", "content": SYSTEM_PROMPT}] + msgs,
-        )
-        return resp.choices[0].message.content.strip()
+
+        def ask(m: str) -> str:
+            resp = client.chat.completions.create(
+                model=m,
+                temperature=0.2,
+                messages=[{"role": "system", "content": SYSTEM_PROMPT}] + msgs,
+            )
+            return resp.choices[0].message.content.strip()
+
+        try:
+            return ask(model or "gpt-4o-mini")
+        except Exception as e:
+            text = str(e).lower()
+            if "model" not in text or not any(k in text for k in ("not_found", "not found", "does not exist", "decommission", "access")):
+                raise
+            for alt in [m for m in list_models(api_key, base_url) if m != model][:3]:  # try other models this key can use
+                try:
+                    return ask(alt)
+                except Exception:
+                    continue
+            raise
 
     raise ValueError(f"Unknown provider: {provider}")
+
+
+_NON_CHAT = ("whisper", "tts", "orpheus", "guard", "embed", "image", "vision-preview", "moderation", "audio", "live")
+_PREFERRED = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "openai/gpt-oss-20b", "openai/gpt-oss-120b",
+              "gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-flash-lite"]
+
+
+def list_models(api_key: str, base_url: str = "") -> list[str]:
+    """Ask an OpenAI-compatible provider which chat models this key can use (best first)."""
+    from openai import OpenAI
+
+    client = OpenAI(api_key=api_key, base_url=base_url or None, timeout=15)
+    ids = [m.id.removeprefix("models/") for m in client.models.list().data]
+    ids = [i for i in ids if not any(bad in i.lower() for bad in _NON_CHAT)]
+    pref = [p for p in _PREFERRED if p in ids]
+    return pref + sorted(i for i in ids if i not in pref)
 
 
 def retrieval_query(question: str, history: list[dict]) -> str:
