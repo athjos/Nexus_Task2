@@ -1,7 +1,3 @@
-"""Smart Document Knowledge Assistant - Streamlit web app (RAG over uploaded PDFs / TXT files).
-
-Run:  streamlit run app.py
-"""
 import os
 
 import streamlit as st
@@ -10,6 +6,7 @@ from rag import (
     NO_ANSWER,
     KnowledgeBase,
     generate_answer,
+    list_models,
     retrieval_query,
 )
 
@@ -24,6 +21,14 @@ def get_secret(name: str) -> str:
     except Exception:  # no secrets.toml locally
         pass
     return os.getenv(name, "")
+
+
+@st.cache_data(ttl=600, show_spinner=False)
+def fetch_models(api_key: str, base_url: str) -> list[str]:
+    try:
+        return list_models(api_key, base_url)
+    except Exception:
+        return []
 
 
 # provider label -> (backend, secret name, default model, base_url)
@@ -99,9 +104,15 @@ with st.sidebar:
             st.caption(f"🔑 {secret_name} loaded from secrets")
         else:
             api_key = st.text_input(f"{provider_label.split(' (')[0]} API key", type="password")
-        model = st.text_input("Model", value=default_model)
         if provider == "openai":
             base_url = st.text_input("Base URL", value=default_url, help="Leave as is for the selected provider")
+            available = fetch_models(api_key, base_url) if api_key else []
+            if available:
+                model = st.selectbox("Model (available to your key)", available)
+            else:
+                model = st.text_input("Model", value=default_model)
+        else:
+            model = st.text_input("Model", value=default_model)
 
     if st.button("Clear chat"):
         st.session_state.messages = []
