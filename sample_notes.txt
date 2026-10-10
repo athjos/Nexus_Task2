@@ -1,0 +1,22 @@
+DATA STRUCTURES - LECTURE 3 NOTES
+
+Stacks
+A stack is a linear data structure that follows the Last In, First Out (LIFO) principle. The element added most recently is the first one to be removed. The two main operations are push, which adds an element to the top, and pop, which removes the top element. Stacks are used for function call management, undo features in editors, and checking balanced brackets in expressions. Both push and pop run in O(1) time.
+
+Queues
+A queue follows the First In, First Out (FIFO) principle, like a line of people waiting at a counter. Enqueue adds an element at the rear and dequeue removes an element from the front. Queues are used in CPU task scheduling, printer job management, and breadth-first search of graphs. A circular queue reuses empty space at the front of an array, which avoids wasting memory.
+
+Linked Lists
+A linked list stores elements in nodes, where each node contains data and a pointer to the next node. Unlike arrays, linked lists do not need contiguous memory, so inserting or deleting a node at a known position takes O(1) time. However, accessing the k-th element takes O(n) time because we must walk through the list from the head. A doubly linked list stores both a next pointer and a previous pointer, which allows traversal in both directions.
+
+Arrays versus Linked Lists
+Arrays give O(1) random access by index but inserting in the middle is O(n) because elements must be shifted. Linked lists give fast insertion and deletion but slow access. Arrays have better cache performance because their elements sit next to each other in memory.
+
+Big-O Notation
+Big-O notation describes how the running time of an algorithm grows as the input size n grows. O(1) is constant time, O(log n) is logarithmic, O(n) is linear, O(n log n) is typical of efficient sorting such as merge sort, and O(n^2) is quadratic, as in bubble sort. We usually describe the worst case. Binary search runs in O(log n) time but requires the array to be sorted.
+
+Hash Tables
+A hash table maps keys to values using a hash function that converts a key into an array index. On average, insertion, deletion and lookup take O(1) time. A collision happens when two keys hash to the same index. Collisions can be handled by chaining, where each index holds a list of entries, or by open addressing, where we probe for the next free slot. The load factor, which is the number of stored items divided by the number of slots, affects performance; when it gets too high the table is resized.
+
+Trees
+A binary tree is a hierarchical structure in which every node has at most two children, called left and right. In a binary search tree, every value in the left subtree is smaller than the node and every value in the right subtree is larger, which makes searching O(log n) when the tree is balanced. Tree traversals include inorder, preorder and postorder, which are depth-first, and level-order, which is breadth-first.

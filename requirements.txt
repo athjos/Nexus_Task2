@@ -1,0 +1,6 @@
+streamlit>=1.35
+pypdf>=4.0
+numpy
+scikit-learn
+openai
+anthropic

@@ -1,0 +1,4 @@
+# Optional, for LOCAL use only: semantic search with sentence-transformers.
+# Too heavy (PyTorch) for the free Streamlit Community Cloud tier, where the app uses TF-IDF instead.
+-r requirements.txt
+sentence-transformers
